@@ -11,6 +11,7 @@ public class PlayerMovement : MonoBehaviour
 
     [SerializeField] float gravity = -9.8F;
     [SerializeField] float jumpHeight = 2F;
+    [SerializeField] float turningTime = 0.2F;
 
     [SerializeField] float slideCenter, colliderHeight, centerPos;
 
@@ -18,10 +19,12 @@ public class PlayerMovement : MonoBehaviour
     Vector3 pos, velocity;
     float xAlign = 0, xOffset = 0;
 
-    int jumpHash, slideHash;
+    int jumpHash, slideHash, turnHash, deadHash;
 
     Transform myTransform;
+    Turn currentTurn;
     PlayerDirection playerDirection = PlayerDirection.Forward;
+    Direction turnDirection;
 
     private void Awake()
     {
@@ -40,6 +43,8 @@ public class PlayerMovement : MonoBehaviour
     {
         jumpHash = Animator.StringToHash("Jump");
         slideHash = Animator.StringToHash("Slide");
+        turnHash = Animator.StringToHash("Turn");
+        deadHash = Animator.StringToHash("Dead");
 
         colliderHeight = characterController.height;
         centerPos = characterController.center.y;
@@ -71,17 +76,23 @@ public class PlayerMovement : MonoBehaviour
             
             isSliding = true;
         }
-        
+
         // Turning
-        if (Input.GetKeyDown(KeyCode.Q)) RotateLeft();
-        else if (Input.GetKeyDown(KeyCode.E)) RotateRight();
+        if (insideTurn)
+        {
+            if (Input.GetKeyDown(KeyCode.Q) && isGrounded)
+                turnDirection = Direction.Left;
+            else if (Input.GetKeyDown(KeyCode.E) && isGrounded)
+                turnDirection = Direction.Right;
+        }
+
 
         // XOffset
         xOffset = Input.GetAxis("Horizontal");
 
         // Gravity
         velocity.y += gravity * Time.deltaTime;
-        if (velocity.y < 0 && isGrounded) velocity.y = gravity * Time.deltaTime;
+        if (velocity.y < 0 && isGrounded) velocity.y = gravity;
 
         // Apply velocity
         characterController.Move(velocity * Time.deltaTime);
@@ -123,11 +134,24 @@ public class PlayerMovement : MonoBehaviour
 
     }
 
-    private void RotateLeft()
+    IEnumerator RotateLeft()
     {
-        if (!insideTurn) return;
+        float time = 0F, deltaTime = 0;
 
-        myTransform.Rotate(Vector3.up, -90F);
+        while(time <= turningTime)
+        { 
+            deltaTime = Time.deltaTime;
+            time += deltaTime;
+
+            if(time > turningTime)
+            {
+                deltaTime = time - turningTime;
+            }
+
+            myTransform.Rotate(Vector3.up, -90 * (1 / turningTime) * deltaTime);
+            yield return null;
+
+        }
 
         // calculate Direction
         int direction = (int)playerDirection;
@@ -135,14 +159,31 @@ public class PlayerMovement : MonoBehaviour
         if (direction < 0)
             direction = (int) PlayerDirection.Left;
 
+        xAlign = currentTurn.GetCenterPos();
+        currentTurn = null;
+
         playerDirection = (PlayerDirection) direction;
     }
 
-    public void RotateRight()
+    IEnumerator RotateRight()
     {
-        if(!insideTurn) return;
 
-        myTransform.Rotate(Vector3.up, 90F);
+        float time = 0F, deltaTime = 0;
+
+        while (time <= turningTime)
+        {
+            deltaTime = Time.deltaTime;
+            time += deltaTime;
+
+            if (time > turningTime)
+            {
+                deltaTime = time - turningTime;
+            }
+
+            myTransform.Rotate(Vector3.up, 90 * (1 / turningTime) * deltaTime);
+            yield return null;
+
+        }
 
         // calculate Direction
         int direction = (int)playerDirection;
@@ -150,6 +191,48 @@ public class PlayerMovement : MonoBehaviour
         if (direction > (int) PlayerDirection.Left)
             direction = 0;
 
+
+        xAlign = currentTurn.GetCenterPos();
+        currentTurn = null;
+
         playerDirection = (PlayerDirection)direction;
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("InsideTurn"))
+        {
+            insideTurn = true;
+
+        }else if (other.CompareTag("Turn"))
+        {
+            insideTurn = false;
+            currentTurn = other.gameObject.GetComponent<Turn>();
+            if(currentTurn == null || !currentTurn.GetDirections().Contains(turnDirection))
+            {
+                turnDirection = Direction.None;
+                return;
+            }
+            animator.SetTrigger(turnHash);
+        }
+        else if (other.CompareTag("Dead"))
+        {
+
+        }
+    }
+
+    public void Turn()
+    {
+        switch (turnDirection)
+        {
+            case Direction.Left:
+                StartCoroutine(RotateLeft());
+                break;
+            case Direction.Right:
+                StartCoroutine(RotateRight());
+                break;
+        }
+
+        turnDirection = Direction.None;
     }
 }
