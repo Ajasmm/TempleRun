@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
@@ -13,12 +14,14 @@ public class PlayerMovement : MonoBehaviour
 
     [SerializeField] float slideCenter, colliderHeight, centerPos;
 
-    bool isGrounded, isSliding;
-    Vector3 movement, velocity;
+    bool isGrounded, isSliding, insideTurn = false;
+    Vector3 pos, velocity;
+    float xAlign = 0, xOffset = 0;
 
     int jumpHash, slideHash;
 
     Transform myTransform;
+    PlayerDirection playerDirection = PlayerDirection.Forward;
 
     private void Awake()
     {
@@ -56,6 +59,7 @@ public class PlayerMovement : MonoBehaviour
             animator.SetTrigger(jumpHash);
         }
 
+        // Slide
         if (Input.GetKeyDown(KeyCode.LeftShift) && isGrounded)
         {
             animator.SetTrigger(slideHash);
@@ -67,15 +71,21 @@ public class PlayerMovement : MonoBehaviour
             
             isSliding = true;
         }
-
+        
+        // Turning
         if (Input.GetKeyDown(KeyCode.Q)) RotateLeft();
         else if (Input.GetKeyDown(KeyCode.E)) RotateRight();
 
+        // XOffset
+        xOffset = Input.GetAxis("Horizontal");
+
         // Gravity
         velocity.y += gravity * Time.deltaTime;
-        if (velocity.y < gravity * Time.deltaTime && isGrounded) velocity.y = gravity * Time.deltaTime;
+        if (velocity.y < 0 && isGrounded) velocity.y = gravity * Time.deltaTime;
 
+        // Apply velocity
         characterController.Move(velocity * Time.deltaTime);
+
     }
 
     public void ResetSliding()
@@ -88,7 +98,58 @@ public class PlayerMovement : MonoBehaviour
         isSliding = false;
     }
 
-    private void RotateLeft() => myTransform.Rotate(Vector3.up, -90F);
+    private void OnAnimatorMove()
+    {
+        animator.ApplyBuiltinRootMotion();
+        Vector3 pos = myTransform.position;
 
-    public void RotateRight() => myTransform.Rotate(Vector3.up, 90F);
+        switch (playerDirection)
+        {
+            case PlayerDirection.Forward:
+                pos.x = xAlign + xOffset;
+                break;
+            case PlayerDirection.Right:
+                pos.z = -(xAlign + xOffset);
+                break;
+            case PlayerDirection.Back:
+                pos.x = -(xAlign + xOffset);
+                break;
+            case PlayerDirection.Left:
+                pos.z = (xAlign + xOffset);
+                break;
+        }
+
+        myTransform.position = pos;
+
+    }
+
+    private void RotateLeft()
+    {
+        if (!insideTurn) return;
+
+        myTransform.Rotate(Vector3.up, -90F);
+
+        // calculate Direction
+        int direction = (int)playerDirection;
+        direction--;
+        if (direction < 0)
+            direction = (int) PlayerDirection.Left;
+
+        playerDirection = (PlayerDirection) direction;
+    }
+
+    public void RotateRight()
+    {
+        if(!insideTurn) return;
+
+        myTransform.Rotate(Vector3.up, 90F);
+
+        // calculate Direction
+        int direction = (int)playerDirection;
+        direction++;
+        if (direction > (int) PlayerDirection.Left)
+            direction = 0;
+
+        playerDirection = (PlayerDirection)direction;
+    }
 }
