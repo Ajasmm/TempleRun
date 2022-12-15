@@ -5,8 +5,13 @@ using UnityEngine;
 public class Turn : MonoBehaviour
 {
     [SerializeField] List<Direction> directions;
-    [SerializeField] float centerPos;
+    [SerializeField] Vector3 centerPos;
 
+
+    private void OnEnable()
+    {
+        centerPos = transform.position;
+    }
     public List<Direction> GetDirections() { return directions; }
-    public float GetCenterPos() { return centerPos; }
+    public Vector3 GetCenterPos() { return centerPos; }
 }

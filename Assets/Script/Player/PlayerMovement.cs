@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
@@ -88,7 +89,17 @@ public class PlayerMovement : MonoBehaviour
 
 
         // XOffset
-        xOffset = Input.GetAxis("Horizontal");
+        switch (playerDirection)
+        {
+            case PlayerDirection.Forward:
+            case PlayerDirection.Left:
+                xOffset = Input.GetAxis("Horizontal");
+                break;
+            case PlayerDirection.Back:
+            case PlayerDirection.Right:
+                xOffset = -Input.GetAxis("Horizontal");
+                break;  
+        }
 
         // Gravity
         velocity.y += gravity * Time.deltaTime;
@@ -120,13 +131,13 @@ public class PlayerMovement : MonoBehaviour
                 pos.x = xAlign + xOffset;
                 break;
             case PlayerDirection.Right:
-                pos.z = -(xAlign + xOffset);
+                pos.z = xAlign + xOffset;
                 break;
             case PlayerDirection.Back:
-                pos.x = -(xAlign + xOffset);
+                pos.x = xAlign + xOffset;
                 break;
             case PlayerDirection.Left:
-                pos.z = (xAlign + xOffset);
+                pos.z = xAlign + xOffset;
                 break;
         }
 
@@ -159,10 +170,22 @@ public class PlayerMovement : MonoBehaviour
         if (direction < 0)
             direction = (int) PlayerDirection.Left;
 
-        xAlign = currentTurn.GetCenterPos();
+        playerDirection = (PlayerDirection)direction;
+
+        switch (playerDirection)
+        {
+            case PlayerDirection.Forward:
+            case PlayerDirection.Back:
+                xAlign = currentTurn.GetCenterPos().x;
+                break;
+            case PlayerDirection.Right:
+            case PlayerDirection.Left:
+                xAlign = currentTurn.GetCenterPos().z;
+                break;
+        }
+
         currentTurn = null;
 
-        playerDirection = (PlayerDirection) direction;
     }
 
     IEnumerator RotateRight()
@@ -191,11 +214,22 @@ public class PlayerMovement : MonoBehaviour
         if (direction > (int) PlayerDirection.Left)
             direction = 0;
 
-
-        xAlign = currentTurn.GetCenterPos();
-        currentTurn = null;
-
         playerDirection = (PlayerDirection)direction;
+
+
+        switch (playerDirection)
+        {
+            case PlayerDirection.Forward:
+            case PlayerDirection.Back:
+                xAlign = currentTurn.GetCenterPos().x;
+                break;
+            case PlayerDirection.Right:
+            case PlayerDirection.Left:
+                xAlign = currentTurn.GetCenterPos().z;
+                break;
+        }
+
+        currentTurn = null;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -217,7 +251,8 @@ public class PlayerMovement : MonoBehaviour
         }
         else if (other.CompareTag("Dead"))
         {
-
+           Debug.Log("On Dead");
+           animator.SetTrigger(deadHash);
         }
     }
 
