@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,6 +11,7 @@ public class Turn : MonoBehaviour
 
     private void OnEnable()
     {
+        Debug.Log("Turn Enable Called");
         centerPos = transform.position;
     }
     public List<Direction> GetDirections() { return directions; }
