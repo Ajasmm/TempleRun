@@ -11,7 +11,6 @@ public class Turn : MonoBehaviour
 
     private void OnEnable()
     {
-        Debug.Log("Turn Enable Called");
         centerPos = transform.position;
     }
     public List<Direction> GetDirections() { return directions; }

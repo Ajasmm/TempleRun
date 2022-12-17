@@ -9,6 +9,8 @@ public class RunningPath : MonoBehaviour
     [SerializeField] public PathType type = PathType.Straight;
     [SerializeField] Transform[] exitPaths;
 
+    bool isPlayerInside = false;
+
     GameObject[] exitPathGameObjects;
 
     private void Awake()
@@ -17,29 +19,47 @@ public class RunningPath : MonoBehaviour
         boxCollider.isTrigger = true;
     }
 
+    private void OnEnable()
+    {
+        isPlayerInside = false;
+    }
+
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player")) InstanciateExitPaths();
+        if (other.CompareTag("Player"))
+        {
+            InstanciateExitPaths();
+            isPlayerInside = true;
+        }
     }
 
     private void OnTriggerExit(Collider collision)
     {
-        if (collision.gameObject.CompareTag("Player")) Invoke("DisableThisPath", 2F);
+        if (collision.gameObject.CompareTag("Enemy")) Invoke("DisableThisPath", 2F);
     }
 
     private void InstanciateExitPaths()
     {
         exitPathGameObjects = new GameObject[exitPaths.Length];
-        foreach(Transform t in exitPaths)
+        for(int i=0; i<exitPaths.Length; i++)
         {
             GameObject obj = PathGenerator.instance.GetPath();
-            obj.transform.SetPositionAndRotation(t.position, t.rotation);
+            obj.transform.SetPositionAndRotation(exitPaths[i].position, exitPaths[i].rotation);
             obj.SetActive(true);
+            exitPathGameObjects[i] = obj;
         }
     }
 
     public void DisableThisPath()
     {
+        for (int i = 0; i < exitPathGameObjects.Length; i++)
+            exitPathGameObjects[i].GetComponentInChildren<RunningPath>().Disable();
+
         if (PathGenerator.instance != null) PathGenerator.instance.AddPath(this.transform.parent.gameObject);
+    }
+
+    public void Disable()
+    {
+        if (PathGenerator.instance != null && !isPlayerInside) PathGenerator.instance.AddPath(this.transform.parent.gameObject);
     }
 }

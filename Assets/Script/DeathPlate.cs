@@ -23,7 +23,7 @@ public class DeathPlate : MonoBehaviour
     private void FixedUpdate()
     {
         tempPos = player.position;
-        tempPos.y = -0.1F;
+        tempPos.y = -0.5F;
         rBody.MovePosition(tempPos);
     }
 

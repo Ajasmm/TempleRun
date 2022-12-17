@@ -18,7 +18,6 @@ public class PathGenerator : MonoBehaviour
         if(instance == null) {
             instance = this;
             transform.parent = null;
-            DontDestroyOnLoad(gameObject);
         }else Destroy(gameObject);
 
 

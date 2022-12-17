@@ -16,7 +16,7 @@ public class PlayerMovement : MonoBehaviour
 
     [SerializeField] float slideCenter, colliderHeight, centerPos;
 
-    bool isGrounded, isSliding, insideTurn = false;
+    bool isGrounded, isSliding, insideTurn = false, isDead = false;
     Vector3 pos, velocity;
     float xAlign = 0, xOffset = 0;
 
@@ -59,46 +59,51 @@ public class PlayerMovement : MonoBehaviour
 
         isGrounded = characterController.isGrounded;
 
-        // Jump
-        if(Input.GetKeyDown(KeyCode.Space) && isGrounded) {
-            velocity.y = Mathf.Sqrt(jumpHeight * -2 * gravity);
-            animator.SetTrigger(jumpHash);
-        }
-
-        // Slide
-        if (Input.GetKeyDown(KeyCode.LeftShift) && isGrounded)
+        if (!isDead)
         {
-            animator.SetTrigger(slideHash);
 
-            characterController.height = 0F;
-            Vector3 colliderCenter = characterController.center;
-            colliderCenter.y = slideCenter;
-            characterController.center = colliderCenter;
-            
-            isSliding = true;
-        }
+            // Jump
+            if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+            {
+                velocity.y = Mathf.Sqrt(jumpHeight * -2 * gravity);
+                animator.SetTrigger(jumpHash);
+            }
 
-        // Turning
-        if (insideTurn)
-        {
-            if (Input.GetKeyDown(KeyCode.Q) && isGrounded)
-                turnDirection = Direction.Left;
-            else if (Input.GetKeyDown(KeyCode.E) && isGrounded)
-                turnDirection = Direction.Right;
-        }
+            // Slide
+            if (Input.GetKeyDown(KeyCode.LeftShift) && isGrounded)
+            {
+                animator.SetTrigger(slideHash);
+
+                characterController.height = 0F;
+                Vector3 colliderCenter = characterController.center;
+                colliderCenter.y = slideCenter;
+                characterController.center = colliderCenter;
+
+                isSliding = true;
+            }
+
+            // Turning
+            if (insideTurn)
+            {
+                if (Input.GetKeyDown(KeyCode.Q) && isGrounded)
+                    turnDirection = Direction.Left;
+                else if (Input.GetKeyDown(KeyCode.E) && isGrounded)
+                    turnDirection = Direction.Right;
+            }
 
 
-        // XOffset
-        switch (playerDirection)
-        {
-            case PlayerDirection.Forward:
-            case PlayerDirection.Left:
-                xOffset = Input.GetAxis("Horizontal");
-                break;
-            case PlayerDirection.Back:
-            case PlayerDirection.Right:
-                xOffset = -Input.GetAxis("Horizontal");
-                break;  
+            // XOffset
+            switch (playerDirection)
+            {
+                case PlayerDirection.Forward:
+                case PlayerDirection.Left:
+                    xOffset = Input.GetAxis("Horizontal");
+                    break;
+                case PlayerDirection.Back:
+                case PlayerDirection.Right:
+                    xOffset = -Input.GetAxis("Horizontal");
+                    break;
+            }
         }
 
         // Gravity
@@ -112,10 +117,11 @@ public class PlayerMovement : MonoBehaviour
 
     public void ResetSliding()
     {
-        characterController.height = colliderHeight;
         Vector3 colliderCenter = Vector3.zero;
         colliderCenter.y = centerPos;
+        // characterController.Move(Vector3.up * 0.1F);
         characterController.center = colliderCenter;
+        characterController.height = colliderHeight;
 
         isSliding = false;
     }
@@ -234,7 +240,12 @@ public class PlayerMovement : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("InsideTurn"))
+        if (other.CompareTag("Coin"))
+        {
+            Coin coin = other.GetComponent<Coin>();
+            coin.Destroy();
+
+        }else if (other.CompareTag("InsideTurn"))
         {
             insideTurn = true;
 
@@ -251,7 +262,8 @@ public class PlayerMovement : MonoBehaviour
         }
         else if (other.CompareTag("Dead"))
         {
-           Debug.Log("On Dead");
+           isDead = true;
+            GamePlayManager.instance.OnGameOver();
            animator.SetTrigger(deadHash);
         }
     }
