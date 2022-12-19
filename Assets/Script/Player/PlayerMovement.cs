@@ -162,7 +162,7 @@ public class PlayerMovement : MonoBehaviour
 
             if(time > turningTime)
             {
-                deltaTime = time - turningTime;
+                deltaTime -= (time - turningTime);
             }
 
             myTransform.Rotate(Vector3.up, -90 * (1 / turningTime) * deltaTime);
@@ -192,6 +192,28 @@ public class PlayerMovement : MonoBehaviour
 
         currentTurn = null;
 
+        Vector3 euler = Vector3.zero;
+        switch (playerDirection)
+        {
+            case PlayerDirection.Forward:
+                euler = myTransform.localEulerAngles;
+                euler.y = 0f;
+                break;
+            case PlayerDirection.Right:
+                euler = myTransform.localEulerAngles;
+                euler.y = 90f;
+                break;
+            case PlayerDirection.Back:
+                euler = myTransform.localEulerAngles;
+                euler.y = 180f;
+                break;
+            case PlayerDirection.Left:
+                euler = myTransform.localEulerAngles;
+                euler.y = 270f;
+                break;
+        }
+        myTransform.localEulerAngles = euler;
+
     }
 
     IEnumerator RotateRight()
@@ -206,7 +228,7 @@ public class PlayerMovement : MonoBehaviour
 
             if (time > turningTime)
             {
-                deltaTime = time - turningTime;
+                deltaTime -= (time - turningTime);
             }
 
             myTransform.Rotate(Vector3.up, 90 * (1 / turningTime) * deltaTime);
@@ -236,6 +258,28 @@ public class PlayerMovement : MonoBehaviour
         }
 
         currentTurn = null;
+
+        Vector3 euler = Vector3.zero;
+        switch (playerDirection)
+        {
+            case PlayerDirection.Forward:
+                euler = myTransform.localEulerAngles;
+                euler.y = 0f;
+                break;
+            case PlayerDirection.Right:
+                euler = myTransform.localEulerAngles;
+                euler.y = 90f;
+                break;
+            case PlayerDirection.Back:
+                euler = myTransform.localEulerAngles;
+                euler.y = 180f;
+                break;
+            case PlayerDirection.Left:
+                euler = myTransform.localEulerAngles;
+                euler.y = 270f;
+                break;
+        }
+        myTransform.localEulerAngles = euler;
     }
 
     private void OnTriggerEnter(Collider other)
