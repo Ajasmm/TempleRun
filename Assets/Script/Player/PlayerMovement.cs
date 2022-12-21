@@ -9,7 +9,6 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] CharacterController characterController;
     [SerializeField] Animator animator;
 
-
     [SerializeField] float gravity = -9.8F;
     [SerializeField] float jumpHeight = 2F;
     [SerializeField] float turningTime = 0.2F;
