@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.48613256, g: 0.57732064, b: 0.68299407, a: 1}
+  m_IndirectSpecularColor: {r: 0.48427704, g: 0.57598525, b: 0.6803942, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -209,7 +209,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BindingMode: 1
-  m_FollowOffset: {x: 0, y: 2.6, z: -5}
+  m_FollowOffset: {x: 0, y: 2.6, z: 5}
   m_XDamping: 1
   m_YDamping: 1
   m_ZDamping: 1
